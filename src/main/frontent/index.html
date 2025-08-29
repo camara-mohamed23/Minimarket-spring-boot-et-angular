@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Minimarket – Catalogue</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+    <div class="nav">
+        <div class="brand pill">🛒 Minimarket</div>
+        <span class="tag">Catalogue</span>
+        <button class="btn" id="btnRefresh">Rafraîchir</button>
+        <div class="spacer"></div>
+        <a class="btn" href="login.html">Connexion</a>
+        <a class="btn" href="register.html">Créer un compte</a>
+        <a class="btn blue" href="cart.html">Mon panier</a>
+    </div>
+</header>
+
+<main>
+    <section class="panel">
+        <h2>Produits</h2>
+        <div id="products" class="grid"></div>
+        <div id="productsEmpty" class="empty hidden">Aucun produit.</div>
+    </section>
+</main>
+
+<footer>
+    API: <code id="apiUrlTag"></code>
+</footer>
+
+<script src="js/api.js"></script>
+<script src="js/index.js"></script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Minimarket – Connexion</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+    <div class="nav">
+        <div class="brand pill">🛒 Minimarket</div>
+        <span class="tag">Connexion</span>
+        <div class="spacer"></div>
+        <a class="btn" href="index.html">Catalogue</a>
+        <a class="btn" href="register.html">Créer un compte</a>
+        <a class="btn blue" href="cart.html">Mon panier</a>
+    </div>
+</header>
+
+<main>
+    <section class="panel" style="max-width:560px;margin:16px auto;">
+        <h2>Se connecter</h2>
+        <div class="row">
+            <input id="logEmail" placeholder="Email" type="email" autocomplete="username">
+            <input id="logPassword" placeholder="Mot de passe" type="password" autocomplete="current-password">
+            <button class="btn blue" id="btnLogin">Connexion</button>
+        </div>
+        <div class="hr"></div>
+        <div class="small">Pas de compte ? <a href="register.html">Créer un compte</a></div>
+    </section>
+</main>
+
+<footer>
+    API: <code id="apiUrlTag"></code>
+</footer>
+
+<script src="js/api.js"></script>
+<script src="js/login.js"></script>
+</body>
+</html>

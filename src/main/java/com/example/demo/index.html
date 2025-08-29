@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <title>Minimarket</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root{--bg:#0f172a;--panel:#111827;--muted:#1f2937;--accent:#22c55e;--accent2:#3b82f6;--text:#e5e7eb;--sub:#9ca3af;--danger:#ef4444}
+        *{box-sizing:border-box}
+        body{margin:0;background:linear-gradient(180deg,#0b1225,#0f172a);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji";min-height:100vh}
+        header{position:sticky;top:0;z-index:10;background:rgba(15,23,42,.8);backdrop-filter:blur(10px);border-bottom:1px solid #1f2937}
+        .nav{max-width:1100px;margin:0 auto;display:flex;gap:12px;align-items:center;padding:12px 16px}
+        .brand{font-weight:800;letter-spacing:.5px}
+        .pill{padding:8px 12px;border:1px solid #1f2937;border-radius:999px;background:#0b1225}
+        .spacer{flex:1}
+        .btn{background:var(--muted);border:1px solid #1f2937;color:var(--text);padding:9px 14px;border-radius:10px;cursor:pointer;transition:.2s}
+        .btn:hover{transform:translateY(-1px);background:#243042}
+        .btn.accent{background:var(--accent);border-color:#16a34a;color:#052e16;font-weight:700}
+        .btn.blue{background:var(--accent2);border-color:#1e40af;color:#04162b;font-weight:700}
+        .btn.danger{background:var(--danger);border-color:#b91c1c;color:#2b0b0b;font-weight:700}
+        main{max-width:1100px;margin:20px auto;padding:0 16px;display:grid;grid-template-columns:1.2fr .8fr;gap:16px}
+        @media (max-width:900px){main{grid-template-columns:1fr}}
+        .panel{background:linear-gradient(180deg,#0a1327,#0b172f);border:1px solid #162033;border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.25);padding:16px}
+        h2{margin:0 0 12px 0;font-size:20px;letter-spacing:.3px}
+        .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+        @media (max-width:1100px){.grid{grid-template-columns:repeat(2,1fr)}}
+        @media (max-width:700px){.grid{grid-template-columns:1fr}}
+        .card{background:linear-gradient(180deg,#0c1429,#0d1833);border:1px solid #162033;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+        .thumb{height:140px;background:#0a1022 url('https://picsum.photos/seed/mini/400/300') center/cover no-repeat}
+        .card-body{padding:12px;display:flex;flex-direction:column;gap:8px}
+        .title{font-weight:700}
+        .price{color:#a7f3d0}
+        .muted{color:var(--sub);font-size:14px}
+        .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+        input,select{background:#0b1225;border:1px solid #1f2937;color:var(--text);padding:9px 10px;border-radius:10px;outline:none}
+        input:focus,select:focus{border-color:#334155}
+        .list{display:flex;flex-direction:column;gap:8px}
+        .item{display:flex;justify-content:space-between;align-items:center;background:#0b1326;border:1px solid #162033;padding:10px;border-radius:12px}
+        .empty{padding:24px;text-align:center;color:var(--sub)}
+        .tag{font-size:12px;background:#0b1225;border:1px solid #1f2937;border-radius:999px;padding:4px 8px;color:#9ca3af}
+        .hr{height:1px;background:#142036;margin:8px 0}
+        .footer-note{color:#6b7280;font-size:12px;margin-top:8px}
+        .danger-text{color:#fecaca}
+        .success-text{color:#bbf7d0}
+        .kpi{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+        .kpi .pill{font-size:12px}
+        .hidden{display:none !important}
+        .small{font-size:12px}
+    </style>
+</head>
+<body>
+<header>
+    <div class="nav">
+        <div class="brand pill">🛒 Minimarket</div>
+        <button class="btn" id="btnRefresh">Rafraîchir</button>
+        <span class="tag" id="envTag">API: <code id="apiUrlTag"></code></span>
+        <div class="spacer"></div>
+        <span class="tag" id="userTag">Non connecté</span>
+        <button class="btn" id="btnLoginOpen">Connexion</button>
+        <button class="btn" id="btnRegisterOpen">Créer un compte</button>
+        <button class="btn danger hidden" id="btnLogout">Se déconnecter</button>
+    </div>
+</header>
+
+<main>
+    <!-- COL 1: Catalogue + Admin -->
+    <section class="panel">
+        <h2>Catalogue</h2>
+        <div class="kpi">
+            <span class="pill small">Produits publics</span>
+            <span class="pill small">Ajouter au panier nécessite une session</span>
+        </div>
+        <div id="products" class="grid"></div>
+        <div id="productsEmpty" class="empty hidden">Aucun produit.</div>
+    </section>
+
+    <!-- COL 2: Panier & Commandes -->
+    <section class="panel">
+        <h2>Mon panier</h2>
+        <div id="cartList" class="list"></div>
+        <div id="cartEmpty" class="empty">Connecte-toi puis ajoute un produit.</div>
+        <div class="hr"></div>
+        <div class="row">
+            <button class="btn blue" id="btnCheckout">Payer (simulation)</button>
+            <span class="footer-note">Paiement simulé 90% de succès • email de confirmation envoyé si OK</span>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Espace Admin</h2>
+        <div class="muted small" id="adminHint">Réservé au rôle <b>ADMIN</b>. Ton token doit porter ce rôle.</div>
+        <div class="hr"></div>
+        <div class="row">
+            <input id="catName" placeholder="Nom catégorie">
+            <button class="btn" id="btnAddCat">+ Catégorie</button>
+        </div>
+        <div class="hr"></div>
+        <div class="row">
+            <input id="prodName" placeholder="Nom produit">
+            <input id="prodDesc" placeholder="Description">
+            <input id="prodPrice" placeholder="Prix" type="number" step="0.01">
+            <input id="prodStock" placeholder="Stock" type="number">
+            <input id="prodCatId" placeholder="Catégorie ID" type="number">
+            <button class="btn accent" id="btnAddProd">+ Produit</button>
+        </div>
+        <div class="footer-note">Astuce : crée une catégorie, note son ID, puis crée un produit en liant l’ID.</div>
+    </section>
+
+    <section class="panel">
+        <h2>Mes commandes</h2>
+        <div id="ordersList" class="list"></div>
+        <div id="ordersEmpty" class="empty">Aucune commande (ou non connecté).</div>
+    </section>
+</main>
+
+<!-- Dialogs -->
+<div class="panel" style="max-width:560px;margin:16px auto;">
+    <h2>Authentification</h2>
+    <div class="row">
+        <input id="regFullname" placeholder="Nom complet">
+        <input id="regEmail" placeholder="Email">
+        <input id="regPassword" placeholder="Mot de passe" type="password">
+        <button class="btn" id="btnRegister">Créer un compte</button>
+    </div>
+    <div class="hr"></div>
+    <div class="row">
+        <input id="logEmail" placeholder="Email">
+        <input id="logPassword" placeholder="Mot de passe" type="password">
+        <button class="btn blue" id="btnLogin">Connexion</button>
+    </div>
+    <div class="footer-note">Après connexion, un <code>token JWT</code> est stocké en local et envoyé aux endpoints sécurisés.</div>
+</div>
+
+<script>
+    // ---------- CONFIG ----------
+    const BASE_URL = 'http://localhost:8180'; // 🟢 adapte selon ton port API
+    document.getElementById('apiUrlTag').textContent = BASE_URL;
+
+    // ---------- STATE ----------
+    let TOKEN = localStorage.getItem('jwt') || null;
+    let ROLE = null; // 'ROLE_ADMIN' ou 'ROLE_CUSTOMER'
+    let USEREMAIL = null;
+
+    // Decode JWT payload (sans vérif crypto, juste pour UI)
+    function decodeJwt(token){
+      try{
+        const payload = token.split('.')[1];
+        const json = atob(payload.replace(/-/g,'+').replace(/_/g,'/'));
+        return JSON.parse(json);
+      }catch(e){ return null; }
+    }
+
+    function setToken(tok){
+      TOKEN = tok;
+      if(tok){
+        localStorage.setItem('jwt', tok);
+        const p = decodeJwt(tok);
+        ROLE = p?.role || null;
+        USEREMAIL = p?.sub || p?.username || null;
+      }else{
+        localStorage.removeItem('jwt');
+        ROLE = null; USEREMAIL = null;
+      }
+      refreshHeader();
+    }
+
+    function refreshHeader(){
+      const userTag = document.getElementById('userTag');
+      const btnLoginOpen = document.getElementById('btnLoginOpen');
+      const btnRegisterOpen = document.getElementById('btnRegisterOpen');
+      const btnLogout = document.getElementById('btnLogout');
+      if(TOKEN){
+        userTag.textContent = `${USEREMAIL || 'connecté'} (${ROLE || 'role?'})`;
+        btnLoginOpen.classList.add('hidden');
+        btnRegisterOpen.classList.add('hidden');
+        btnLogout.classList.remove('hidden');
+      }else{
+        userTag.textContent = 'Non connecté';
+        btnLoginOpen.classList.remove('hidden');
+        btnRegisterOpen.classList.remove('hidden');
+        btnLogout.classList.add('hidden');
+      }
+      // Hint Admin visible seulement si admin
+      document.getElementById('adminHint').innerHTML =
+        ROLE === 'ROLE_ADMIN'
+          ? '<span class="success-text">Tu es Admin ✅</span>'
+          : 'Réservé au rôle <b>ADMIN</b>. Ton token doit porter ce rôle.';
+    }
+
+    function headers(json=true){
+      const h = {};
+      if(json) h['Content-Type']='application/json';
+      if(TOKEN) h['Authorization']='Bearer '+TOKEN;
+      return h;
+    }
+
+    async function api(path, options={}){
+      const res = await fetch(BASE_URL+path, options);
+      if(!res.ok){
+        const txt = await res.text();
+        throw new Error(txt || res.statusText);
+      }
+      const ct = res.headers.get('content-type')||'';
+      if(ct.includes('application/json')) return res.json();
+      return res.text();
+    }
+
+    // ---------- PRODUCTS ----------
+    async function loadProducts(){
+      try{
+        const list = await api('/api/products');
+        const grid = document.getElementById('products');
+        const empty = document.getElementById('productsEmpty');
+        grid.innerHTML='';
+        if(!list || list.length===0){ empty.classList.remove('hidden'); return; }
+        empty.classList.add('hidden');
+        list.forEach(p=>{
+          const el = document.createElement('div');
+          el.className='card';
+          el.innerHTML = `
+            <div class="thumb" style="background-image:url('${p.imageUrl || 'https://picsum.photos/seed/'+p.id+'/400/300'}')"></div>
+            <div class="card-body">
+              <div class="title">${p.name}</div>
+              <div class="muted small">${p.description || ''}</div>
+              <div class="price"><b>${Number(p.price).toFixed(2)}</b> €</div>
+              <div class="row">
+                <input type="number" value="1" min="1" style="width:90px" data-qty>
+                <button class="btn" data-add>Ajouter au panier</button>
+                <span class="tag">ID: ${p.id}</span>
+                <span class="tag">Cat: ${p.category?.id ?? '-'}</span>
+              </div>
+            </div>
+          `;
+          el.querySelector('[data-add]').addEventListener('click', async ()=>{
+            const qty = parseInt(el.querySelector('[data-qty]').value||'1',10);
+            if(!TOKEN){ alert('Connecte-toi d’abord.'); return; }
+            await api(`/api/cart/add/${p.id}?qty=${qty}`, { method:'POST', headers: headers(false) });
+            await loadCart();
+            alert('Ajouté !');
+          });
+          grid.appendChild(el);
+        });
+      }catch(e){
+        console.error(e); alert('Erreur chargement produits');
+      }
+    }
+
+    // ---------- CART ----------
+    async function loadCart(){
+      const listEl = document.getElementById('cartList');
+      const emptyEl = document.getElementById('cartEmpty');
+      if(!TOKEN){ listEl.innerHTML=''; emptyEl.classList.remove('hidden'); return; }
+      try{
+        const cart = await api('/api/cart', { headers: headers(false) });
+        listEl.innerHTML='';
+        if(!cart || !cart.items || cart.items.length===0){
+          emptyEl.classList.remove('hidden');
+          return;
+        }
+        emptyEl.classList.add('hidden');
+        cart.items.forEach(it=>{
+          const line = document.createElement('div');
+          line.className='item';
+          line.innerHTML=`
+            <div>
+              <div><b>${it.product?.name || 'Produit'}</b> <span class="muted">#${it.product?.id}</span></div>
+              <div class="muted small">PU: ${Number(it.unitPrice).toFixed(2)} €</div>
+            </div>
+            <div class="row">
+              <input type="number" value="${it.quantity}" min="1" style="width:100px" data-qty>
+              <button class="btn" data-upd>MAJ</button>
+              <button class="btn danger" data-del>Suppr</button>
+            </div>
+          `;
+          line.querySelector('[data-upd]').addEventListener('click', async ()=>{
+            const qty = parseInt(line.querySelector('[data-qty]').value||'1',10);
+            await api(`/api/cart/qty/${it.product.id}?qty=${qty}`, { method:'PUT', headers: headers(false) });
+            await loadCart();
+          });
+          line.querySelector('[data-del]').addEventListener('click', async ()=>{
+            await api(`/api/cart/remove/${it.product.id}`, { method:'DELETE', headers: headers(false) });
+            await loadCart();
+          });
+          listEl.appendChild(line);
+        });
+      }catch(e){
+        console.error(e);
+        listEl.innerHTML='';
+        emptyEl.classList.remove('hidden');
+      }
+    }
+
+    // ---------- CHECKOUT & ORDERS ----------
+    async function checkout(){
+      if(!TOKEN){ alert('Connecte-toi.'); return; }
+      try{
+        const order = await api('/api/orders/checkout', { method:'POST', headers: headers(false) });
+        alert('Commande '+order.id+' créée. Statut: '+order.status);
+        await loadCart();
+        await loadOrders();
+      }catch(e){
+        console.error(e);
+        alert('Paiement échoué ou erreur.');
+      }
+    }
+
+    async function loadOrders(){
+      const listEl = document.getElementById('ordersList');
+      const emptyEl = document.getElementById('ordersEmpty');
+      if(!TOKEN){ listEl.innerHTML=''; emptyEl.classList.remove('hidden'); return; }
+      try{
+        const list = await api('/api/orders', { headers: headers(false) });
+        listEl.innerHTML='';
+        if(!list || list.length===0){ emptyEl.classList.remove('hidden'); return; }
+        emptyEl.classList.add('hidden');
+        list.forEach(o=>{
+          const box = document.createElement('div');
+          box.className='item';
+          const total = Number(o.totalAmount||0).toFixed(2);
+          box.innerHTML = `
+            <div>
+              <div><b>Commande #${o.id}</b> <span class="tag">${o.status}</span></div>
+              <div class="muted small">${new Date(o.createdAt || Date.now()).toLocaleString()}</div>
+              <div class="muted small">Total: ${total} €</div>
+            </div>
+            <div class="small">${(o.items||[]).length} article(s)</div>
+          `;
+          listEl.appendChild(box);
+        });
+      }catch(e){
+        console.error(e);
+        listEl.innerHTML=''; emptyEl.classList.remove('hidden');
+      }
+    }
+
+    // ---------- AUTH ----------
+    async function register(){
+      const full = document.getElementById('regFullname').value.trim();
+      const mail = document.getElementById('regEmail').value.trim();
+      const pass = document.getElementById('regPassword').value;
+      if(!full || !mail || !pass){ alert('Champs manquants'); return; }
+      try{
+        const res = await api('/api/auth/register', {
+          method:'POST', headers: headers(), body: JSON.stringify({ fullName: full, email: mail, password: pass })
+        });
+        setToken(res.token);
+        alert('Compte créé & connecté');
+        await afterLogin();
+      }catch(e){ alert('Erreur inscription'); }
+    }
+    async function login(){
+      const mail = document.getElementById('logEmail').value.trim();
+      const pass = document.getElementById('logPassword').value;
+      if(!mail || !pass){ alert('Champs manquants'); return; }
+      try{
+        const res = await api('/api/auth/login', {
+          method:'POST', headers: headers(), body: JSON.stringify({ email: mail, password: pass })
+        });
+        setToken(res.token);
+        alert('Connecté');
+        await afterLogin();
+      }catch(e){ alert('Email/mot de passe invalide'); }
+    }
+    function logout(){
+      setToken(null);
+      loadCart();
+      loadOrders();
+    }
+    async function afterLogin(){
+      await loadCart();
+      await loadOrders();
+    }
+
+    // ---------- ADMIN ----------
+    async function addCategory(){
+      if(ROLE!=='ROLE_ADMIN'){ alert('Admin requis'); return; }
+      const name = document.getElementById('catName').value.trim();
+      if(!name){ alert('Nom requis'); return; }
+      try{
+        const c = await api('/api/categories', {
+          method:'POST', headers: headers(), body: JSON.stringify({ name })
+        });
+        alert('Catégorie créée (ID '+c.id+')');
+      }catch(e){ alert('Erreur création catégorie'); }
+    }
+    async function addProduct(){
+      if(ROLE!=='ROLE_ADMIN'){ alert('Admin requis'); return; }
+      const name = document.getElementById('prodName').value.trim();
+      const description = document.getElementById('prodDesc').value.trim();
+      const price = parseFloat(document.getElementById('prodPrice').value);
+      const stock = parseInt(document.getElementById('prodStock').value||'0',10);
+      const catId = parseInt(document.getElementById('prodCatId').value||'0',10);
+      if(!name || isNaN(price) || !catId){ alert('Champs obligatoires manquants'); return; }
+      try{
+        await api('/api/products', {
+          method:'POST',
+          headers: headers(),
+          body: JSON.stringify({ name, description, price, stock, category: { id: catId } })
+        });
+        alert('Produit créé');
+        await loadProducts();
+      }catch(e){ console.error(e); alert('Erreur création produit'); }
+    }
+
+    // ---------- UI Events ----------
+    document.getElementById('btnRefresh').addEventListener('click', ()=>{ loadProducts(); loadOrders(); loadCart(); });
+    document.getElementById('btnCheckout').addEventListener('click', checkout);
+    document.getElementById('btnRegister').addEventListener('click', register);
+    document.getElementById('btnLogin').addEventListener('click', login);
+    document.getElementById('btnLogout').addEventListener('click', logout);
+    document.getElementById('btnAddCat').addEventListener('click', addCategory);
+    document.getElementById('btnAddProd').addEventListener('click', addProduct);
+
+    // Boutons d’accès rapides (ouvrent juste le bloc auth ici)
+    document.getElementById('btnLoginOpen').addEventListener('click', ()=>document.getElementById('logEmail').focus());
+    document.getElementById('btnRegisterOpen').addEventListener('click', ()=>document.getElementById('regFullname').focus());
+
+    // ---------- BOOT ----------
+    (async function boot(){
+      if(TOKEN){
+        const p = decodeJwt(TOKEN);
+        ROLE = p?.role || null;
+        USEREMAIL = p?.sub || p?.username || null;
+      }
+      refreshHeader();
+      await loadProducts();
+      await loadOrders();
+      await loadCart();
+    })();
+</script>
+</body>
+</html>

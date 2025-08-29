@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Minimarket – Mon panier</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+    <div class="nav">
+        <div class="brand pill">🛒 Minimarket</div>
+        <span class="tag">Panier</span>
+        <div class="spacer"></div>
+        <a class="btn" href="index.html">Catalogue</a>
+        <a class="btn" href="login.html">Connexion</a>
+        <a class="btn" href="register.html">Créer un compte</a>
+    </div>
+</header>
+
+<main>
+    <section class="panel">
+        <h2>Mon panier</h2>
+        <div id="cartList" class="list"></div>
+        <div id="cartEmpty" class="empty">Connecte-toi puis ajoute un produit depuis le catalogue.</div>
+        <div class="hr"></div>
+        <div class="row">
+            <button class="btn blue" id="btnCheckout">Payer (simulation)</button>
+            <span class="small">Paiement simulé • Email de confirmation si succès</span>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Mes commandes</h2>
+        <div id="ordersList" class="list"></div>
+        <div id="ordersEmpty" class="empty">Aucune commande (ou non connecté).</div>
+    </section>
+</main>
+
+<footer>
+    API: <code id="apiUrlTag"></code>
+</footer>
+
+<script src="js/api.js"></script>
+<script src="js/cart.js"></script>
+</body>
+</html>
